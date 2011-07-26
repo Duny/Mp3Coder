@@ -74,26 +74,6 @@ public:
     void WriteData (COutBuffer & buf, UInt32 numFrames);
 
     bool GetNextHeader (FrameHeader & headerOut);
-
-	//void GetSideInfoSizes (UInt32 numFrames, CByteVector & sizes);
-};
-
-//
-// Side Information stuff
-//
-
-class SideInfoCollector
-{
-	enum { MAX_SI_SIZE = 32 };
-
-	CByteVector m_bytes[MAX_SI_SIZE];
-
-public:
-	void CollectData (Byte *data, Byte siSize);
-	void GetDataForFrame (Byte *dataOut, UInt32 frameNo, Byte siSize);
-
-    void WriteData (COutBuffer &buf);
-	void ReadData (CInBuffer &buf);
 };
 }}
 #endif

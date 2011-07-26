@@ -47,13 +47,6 @@ HRESULT CDecoder::DecodeFrames ()
     DecodeBadCRC (badCRCs);
     DecodeSpaceAfterFrame (spaces);
 
-	//
-	// decode side information
-	//
-	//hdrCollector.GetSideInfoSizes (numFrames, siSizes);
-	SideInfoCollector siCollector;
-	siCollector.ReadData (m_sideInfoBuffer);
-
     //
     // decode frames
     //
@@ -89,7 +82,7 @@ HRESULT CDecoder::DecodeFrames ()
             }
             else {
                 Byte *sideInfo = ptr + 2;
-				siCollector.GetDataForFrame (sideInfo, i, header.m_sideInfoSize);
+                m_sideInfoBuffer.ReadBytes (sideInfo, header.m_sideInfoSize);
 				WORD crc = CalcCRC16 (&header.m_data[2], sideInfo, header.m_protectedBits);
 				ptr[0] = (crc >> 8) & 0xFF;
 				ptr[1] = crc & 0xFF;
@@ -101,7 +94,7 @@ HRESULT CDecoder::DecodeFrames ()
 
 		// read side info
 		if (!sideInfoWasRead) {
-			siCollector.GetDataForFrame (ptr, i, header.m_sideInfoSize);
+			m_sideInfoBuffer.ReadBytes (ptr, header.m_sideInfoSize);
 			ptr += header.m_sideInfoSize;
 		}
 

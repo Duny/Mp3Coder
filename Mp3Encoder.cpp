@@ -78,8 +78,8 @@ HRESULT CEncoder::CodeFrames ()
     SpaceAfterFrameVector spaceAfterFrame;
 
     FrameHeaderCollector hdrCollector;
-	SideInfoCollector    siCollector;
 
+    UInt32 counter = 0;
     for (; ;frameCounter++) {
         if (!FindFrameHeader (&curFrameOffset, &curFrame))
             break;
@@ -121,7 +121,7 @@ HRESULT CEncoder::CodeFrames ()
         }
 
         // code side info
-		siCollector.CollectData (ptr, curFrame.m_sideInfoSize);
+        m_sideInfoBuffer.WriteBytes (ptr, curFrame.m_sideInfoSize);
         ptr += curFrame.m_sideInfoSize;
 
         // code rest of the frame
@@ -135,9 +135,6 @@ HRESULT CEncoder::CodeFrames ()
         prevFrameOffset = curFrameOffset;
         prevFrame = curFrame;
     }
-
-    // write side info
-    siCollector.WriteData (m_sideInfoBuffer);
 
     //
     // write headers
