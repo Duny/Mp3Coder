@@ -166,35 +166,4 @@ bool FrameHeaderCollector::GetNextHeader (FrameHeader & headerOut)
 
     return headerOut.InitFromByteBuf (buf);
 }
-
-//void FrameHeaderCollector::GetSideInfoSizes (UInt32 numFrames, CByteVector &sizes)
-//{
-//    Byte stereo, lsf;
-//    bool channelModeFlag = m_flags[channelMode],
-//         mpegVersionFlag = m_flags[mpegVersion];
-//
-//    if (channelModeFlag)
-//        stereo = m_fields0[channelMode] != MPG_MD_MONO;
-//    if (mpegVersionFlag)
-//        lsf = (m_fields0[mpegVersion] == 0) || (m_fields0[mpegVersion] == 2);
-//
-//	sizes.Reserve (numFrames);
-//    for (UInt32 i = 0; i < numFrames; i++) {
-//        if (!channelModeFlag)
-//            stereo = m_readers[channelMode].ReadBits (g_fieldLen[channelMode]) != MPG_MD_MONO;
-//
-//        if (!mpegVersionFlag) {
-//            Byte version = m_readers[mpegVersion].ReadBits (g_fieldLen[mpegVersion]);
-//            lsf = (version == 0) || (version == 2);
-//        }
-//
-//        sizes.Add (g_sideInfoSizes[lsf][stereo]);
-//    }
-//
-//    // reinit readers
-//    if (!channelModeFlag)
-//	    m_readers[channelMode].Init (&m_fields[channelMode]);
-//    if (!mpegVersionFlag)
-//        m_readers[mpegVersion].Init (&m_fields[mpegVersion]);
-//}
 }}

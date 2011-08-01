@@ -438,9 +438,9 @@ static const wchar_t *kLzmaMatchFinderForHeaders = L"BT2";
 #define ADD_PROPERTY(method, property, id, value) \
 		property.Id = id; property.Value = value; method.Props.Add(property)
 
-static inline void Mp3GetMethodFull (UInt64 methodID, UInt32 numInStreams, CMethodFull &methodResult)
+static inline void Mp3GetMethodFull (UInt32 numInStreams, CMethodFull &methodResult)
 {
-    methodResult.Id = methodID;
+    methodResult.Id = k_MP3;
     methodResult.NumInStreams = numInStreams;
     methodResult.NumOutStreams = 1;
 }
@@ -451,7 +451,7 @@ static void MakeMp3Method (const CCompressionMethodMode &method, CCompressionMet
 
     mp3Method = method;
 
-    Mp3GetMethodFull (k_MP3, 3, methodFull);
+    Mp3GetMethodFull (3, methodFull);
     mp3Method.Methods.Insert (0, methodFull);
 
     GetMethodFull (k_LZMA, 1, methodFull);
