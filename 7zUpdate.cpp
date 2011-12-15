@@ -181,7 +181,7 @@ static const char *g_Exts =
   " lzma 7z ace arc arj bz bz2 deb lzo lzx gz pak rpm sit tgz tbz tbz2 tgz cab ha lha lzh rar zoo"
   " zip jar ear war msi"
   " 3gp avi mov mpeg mpg mpe wmv"
-  " aac ape fla flac la mp3 m4a mp4 ofr ogg pac ra rm rka shn swa tta wv wma wav"
+  " aac ape fla flac la m4a mp4 ofr ogg pac ra rm rka shn swa tta wv wma wav"
   " swf "
   " chm hxi hxs"
   " gif jpeg jpg jp2 png tiff  bmp ico psd psp"
@@ -339,6 +339,12 @@ static bool IsExeExt(const UString &ext)
   return false;
 }
 
+// ======================== Duny ========================
+static bool IsMp3Ext(const UString &ext)
+{
+  return ext.CompareNoCase(L"mp3") == 0;
+}
+// ======================== End Duny ====================
 #ifdef USE_86_FILTER
 
 static inline void GetMethodFull(UInt64 methodID, UInt32 numInStreams, CMethodFull &methodResult)
@@ -707,6 +713,19 @@ bool static Is86FilteredFolder(const CFolder &f)
   return false;
 }
 
+// ======================== Duny ========================
+bool static IsMp3FilteredFolder(const CFolder &f)
+{
+  for (int i = 0; i < f.Coders.Size(); i++)
+  {
+    CMethodId m = f.Coders[i].MethodID;
+    if (m == k_MP3)
+      return true;
+  }
+  return false;
+}
+// ======================== End Duny ====================
+
 #ifndef _NO_CRYPTO
 
 class CCryptoGetTextPassword:
@@ -727,14 +746,23 @@ STDMETHODIMP CCryptoGetTextPassword::CryptoGetTextPassword(BSTR *password)
 
 #endif
 
-static const int kNumGroupsMax = 4;
+// ======================== Duny ========================
+//static const int kNumGroupsMax = 4;
+static const int kNumGroupsMax = 4 * 2;
+
+static bool IsMp3Group(int group) { return (group & 3) != 0; }
+// ======================== End Duny ====================
 
 #ifdef USE_86_FILTER
 static bool Is86Group(int group) { return (group & 1) != 0; }
 #endif
 static bool IsEncryptedGroup(int group) { return (group & 2) != 0; }
-static int GetGroupIndex(bool encrypted, int bcjFiltered)
-  { return (encrypted ? 2 : 0) + (bcjFiltered ? 1 : 0); }
+// ======================== Duny ========================
+//static int GetGroupIndex(bool encrypted, int bcjFiltered)
+//  { return (encrypted ? 2 : 0) + (bcjFiltered ? 1 : 0); }
+static int GetGroupIndex(bool encrypted, int bcjFiltered, int mp3Filtered)
+  { return (mp3Filtered ? 4 : 0) + (encrypted ? 2 : 0) + (bcjFiltered ? 1 : 0); }
+// ======================== End Duny ====================
 
 HRESULT Update(
     DECL_EXTERNAL_CODECS_LOC_VARS
@@ -815,7 +843,7 @@ HRESULT Update(
       rep.NumCopyFiles = numCopyItems;
       const CFolder &f = db->Folders[i];
       bool isEncrypted = f.IsEncrypted();
-      rep.Group = GetGroupIndex(isEncrypted, Is86FilteredFolder(f));
+      rep.Group = GetGroupIndex(isEncrypted, Is86FilteredFolder(f), IsMp3FilteredFolder(f));
       folderRefs.Add(rep);
       if (numCopyItems == numUnpackStreams)
         complexity += db->GetFolderFullPackSize(i);
@@ -872,9 +900,6 @@ HRESULT Update(
   CObjectVector<CSolidGroup> groups;
   for (i = 0; i < kNumGroupsMax; i++)
     groups.Add(CSolidGroup());
-// ======================== Duny ========================
-  groups.Add (CSolidGroup());
-// ======================== End Duny ====================
   {
     // ---------- Split files to 2 groups ----------
 
@@ -895,12 +920,9 @@ HRESULT Update(
           filteredGroup = IsExeExt(ui.Name.Mid(dotPos + 1));
       }
 	  // ======================== Duny ========================
-      int dotPos = ui.Name.ReverseFind(L'.');
-      if (dotPos >= 0 && ui.Name.Mid(dotPos + 1).CompareNoCase (L"mp3") == 0)
-		groups[kNumGroupsMax].Indices.Add(i);
-	  else
+      groups[GetGroupIndex(method.PasswordIsDefined, filteredGroup, IsMp3Ext (ui.GetExtension ()))].Indices.Add(i);
       // ======================== End Duny ====================
-      groups[GetGroupIndex(method.PasswordIsDefined, filteredGroup)].Indices.Add(i);
+      //groups[GetGroupIndex(method.PasswordIsDefined, filteredGroup)].Indices.Add(i);
     }
   }
 
@@ -933,10 +955,7 @@ HRESULT Update(
 
   int folderRefIndex = 0;
   lps->ProgressOffset = 0;
-// ======================== Duny ========================
-  for (int groupIndex = 0; groupIndex <= kNumGroupsMax; groupIndex++)
-// ======================== End Duny ====================
-//  for (int groupIndex = 0; groupIndex < kNumGroupsMax; groupIndex++)
+  for (int groupIndex = 0; groupIndex < kNumGroupsMax; groupIndex++)
   {
     const CSolidGroup &group = groups[groupIndex];
 
@@ -946,12 +965,14 @@ HRESULT Update(
       MakeExeMethod(*options.Method, options.MaxFilter, method);
     else
     #endif
-		method = *options.Method;
+        //method = *options.Method;
 // ======================== Duny ========================
-	if (groupIndex == kNumGroupsMax)
+	if (IsMp3Group(groupIndex))
 		MakeMp3Method(*options.Method, method);
+    else
+        method = *options.Method;
 // ======================== End Duny ====================
-      
+
     if (IsEncryptedGroup(groupIndex))
     {
       if (!method.PasswordIsDefined)
@@ -1138,10 +1159,6 @@ HRESULT Update(
       if (numSubFiles < 1)
         numSubFiles = 1;
 
-// ======================== Duny ========================
-	/*if (groupIndex == kNumGroupsMax)
-		numSubFiles = 1;*/
-// ======================== End Duny ====================
       CFolderInStream *inStreamSpec = new CFolderInStream;
       CMyComPtr<ISequentialInStream> solidInStream(inStreamSpec);
       inStreamSpec->Init(updateCallback, &indices[i], numSubFiles);

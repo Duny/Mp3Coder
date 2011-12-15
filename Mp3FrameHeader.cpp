@@ -4,7 +4,7 @@
 namespace NCompress {
 namespace NMp3 {
 
-static UInt32 g_tabSel[2][3][16] = {
+static const UInt32 g_tabSel[2][3][16] = {
    { { 0,32,64,96,128,160,192,224,256,288,320,352,384,416,448 },
      { 0,32,48,56, 64, 80, 96,112,128,160,192,224,256,320,384 },
      { 0,32,40,48, 56, 64, 80, 96,112,128,160,192,224,256,320 }},
@@ -14,11 +14,11 @@ static UInt32 g_tabSel[2][3][16] = {
      { 0,8,16,24,32,40,48,56,64,80,96,112,128,144,160 } }
 };
 
-static UInt32 g_freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000 }; 
+static const UInt32 g_freqs[9] = { 44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000 }; 
 
 // size of side information (only for Layer III)
 // 1. index = LSF, 2. index = mono/stereo
-static Byte g_sideInfoSizes[2][2] = { { 17, 32 }, { 9, 17 } };
+static const Byte g_sideInfoSizes[2][2] = { { 17, 32 }, { 9, 17 } };
 
 static const Byte g_fieldLen[totalHeaderFields] = { 2, 2, 1, 4, 2, 1, 1, 2, 2, 1, 1, 2 };
 static const Byte g_reservedFieldValue[totalHeaderFields] = { 0, 0, 0xFF, 0xF, 0x3, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x2 };
